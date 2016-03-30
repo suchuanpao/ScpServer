@@ -4,10 +4,11 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <string.h>
 #include <scp_msg.h>
 //如果未定义日志记录错误的宏，则直接输出
 #ifndef LOG_ERR
-#define SCP_PERROR(err_str) printf("%s,%s,%d:%s\n",__FILE__,__func__,__LINE__,err_str)
+#define SCP_PERROR(errno,err_str) printf("%s,%s,%d:%s\n",__FILE__,__func__,__LINE__,err_str)
 #endif
 //
 enum SCP_SOCK_RET_VALUE{

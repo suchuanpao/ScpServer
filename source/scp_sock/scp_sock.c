@@ -3,11 +3,13 @@
 
 
 static int InitSockClass(ScpSockClass * sock_class, ScpSockType sock_type)
-{
+{	
+	int ret;
 	scp_class->cli_or_ser = sock_type;
 	scp_class->sock = socket(AF_INET,SOCK_STREAM,0);
-	if(scp_sock->sock < 0){
-		SCP_PERROR("Create sock failed.\n");
+	ret = scp_class->sock;
+	if(ret < 0){
+		SCP_PERROR(ret, "Create sock failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -16,11 +18,12 @@ static int InitSockClass(ScpSockClass * sock_class, ScpSockType sock_type)
 
 static int InitAddress(ScpSockClass* sock_class,const char * ser_ip,uint16_t port, int familly)
 {
+	int ret = 0;
 	sock_class->addr.sin_familly = familly
 	sock_class->addr.sin_port = htons(port);
 	if(sock_class->cli_or_ser == SCP_CLIENT){
-		if(inet_pton(familly,ser_ip,(struct sockaddr*)&(sock_class->addr)) < 0){
-			SCP_PERROR("Inet_pton failed.\n");
+		if((ret = inet_pton(familly,ser_ip,(struct sockaddr*)&(sock_class->addr))) < 0){
+			SCP_PERROR(ret, "Inet_pton failed.\n");
 			return FAILED;
 		}
 	}else{
@@ -31,12 +34,13 @@ static int InitAddress(ScpSockClass* sock_class,const char * ser_ip,uint16_t por
 
 static int Connect2Server(ScpSockClass *sock_class)
 {
+	int ret = 0;
 	if(sock_class->cli_or_ser != SCP_CLIENT){
-		SCP_PERROR("Server sock can not use as client sock.\n");
+		SCP_PERROR(ret, "Server sock can not use as client sock.\n");
 		return FAILED;
 	}
-	if(connect(sock_class->sock,(struct sockaddr*)&(sock_class->addr),sizeof(struct sockaddr_in))){
-		SCP_PERROR("Connect to server failed.\n");
+	if((ret = connect(sock_class->sock,(struct sockaddr*)&(sock_class->addr),sizeof(struct sockaddr_in)))){
+		SCP_PERROR(ret , "Connect to server failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -46,12 +50,12 @@ static int SockRead(ScpSockClass * sock_class, char * recv_buf, int32_t len, uin
 	int recv_len = 0;
 	while(len){
 		recv_len = read(sock_class->sock,recv_buf,len,flasg);
-		if(recv_len < 0){
-			SCP_PERROR("Sock Recv buffer failed.\n");
+		if(recv_len < 0){	
+			SCP_PERROR(recv_len, "Sock Recv buffer failed.\n");
 			return FAILED;
 		}
 		if(recv_len == 0){
-			SCP_PERROR("Sock Recv failed, connect may be invaild.\n");
+			SCP_PERROR(0,"Sock Recv failed, connect may be invaild.\n");
 			return WRONG;
 		}
 		recv_buf += recv_len;
@@ -65,11 +69,11 @@ static int SockWrite(ScpSockClass * sock_class, const char * send_buf, int32_t l
         while(len){
                 send_len = read(sock_class->sock,send_buf,len,flasg);
                 if(send_len < 0){
-                        SCP_PERROR("Sock Send buffer failed.\n");
+                        SCP_PERROR(send_len,"Sock Send buffer failed.\n");
                         return FAILED;
                 }
                 if(send_len == 0){
-                        SCP_PERROR("Sock Send failed, connect may be invaild.\n");
+                        SCP_PERROR(0,"Sock Send failed, connect may be invaild.\n");
                         return WRONG;
                 }
 		send_buf += send_len;
@@ -79,8 +83,9 @@ static int SockWrite(ScpSockClass * sock_class, const char * send_buf, int32_t l
 }
 static int Close(ScpSockClass * sock_class)
 {
-	if(close(sock_class->sock) != 0){
-		SCP_PERROR("Close sock failed.\n");
+	int ret = 0;
+	if((ret = close(sock_class->sock)) != 0){
+		SCP_PERROR(ret,"Close sock failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -89,11 +94,12 @@ static int Close(ScpSockClass * sock_class)
 
 static int Bind(ScpSockClass * sock_class)
 {
+	int ret = 0;
 	if(sock_class->cli_or_ser != 0){
-		SCP_PERROR("Client sock can not bind adderss.\n");
+		SCP_PERROR(0,"Client sock can not bind adderss.\n");
 	}
-	if(0 != bind(sock_class->sock,(struct sockaddr*)&(sock_class->addr),sizeof(struct sockaddr))){
-		SCP_PERROR("Bind failed.\n");
+	if(0 != (ret=bind(sock_class->sock,(struct sockaddr*)&(sock_class->addr),sizeof(struct sockaddr)) ) ){
+		SCP_PERROR(ret,"Bind failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -101,12 +107,13 @@ static int Bind(ScpSockClass * sock_class)
 
 static int Listen(ScpSockClass * sock_class , int32_t count)
 {
+	int ret = 0;
 	if(sock_class->cli_or_ser != 0){
-                SCP_PERROR("Client sock can not listen to connect.\n");
+                SCP_PERROR(0,"Client sock can not listen to connect.\n");
 		return FAILED;
         }
-	if(listen(sock_class->sock,count) < 0){
-		SCP_PERROR("Listen failed.\n");
+	if((ret = listen(sock_class->sock,count)) < 0){
+		SCP_PERROR(ret,"Listen failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -120,12 +127,11 @@ static ScpSockClass * Accept(ScpSockClass *)
 	socklen_t cli_len;
 	
         if(sock_class->cli_or_ser != 0){
-                SCP_PERROR("Client sock can not Accept.\n");
+                SCP_PERROR(0,"Client sock can not Accept.\n");
                 return FAILED;
         }	
-	ret = accept(sock_addr->sock,(struct sockaddr*)&cli_addr,&cli_len);
-	if(ret < 0){
-		SCP_PERROR("Accept client failed.\n");
+	if((ret = accept(sock_addr->sock,(struct sockaddr*)&cli_addr,&cli_len)) < 0){
+		SCP_PERROR(ret ,"Accept client failed.\n");
 		return FAILED;
 	}
 	return SUCCESS;
@@ -137,18 +143,28 @@ struct ScpSockClass * CreateSockClass(void)
 {
 	struct ScpSockClass * sock_class = malloc(sizeof(struct ScpSockClass));
 	if(sock_class == NULL){
-		SCP_PERROR("ScpSockClass malloc failed.\n");
+		SCP_PERROR(0,"ScpSockClass malloc failed.\n");
 		return NULL;
 	}
 	sock_class->InitSockClass = InitSockClass;
 	sock_class->InitAddress = InitAddress;
-	sock_class->Connect2Server = Connect2Server;
 	sock_class->Close = Close;
+
+	sock_class->Connect2Server;
 	sock_class->Read = SockRead;
 	sock_class->Write = SockWrite;
-	
+
+	sock_class->Bind = Bind;
+	sock_class->Listen = Listen;
+	sock_class->Accept;
+	return sock_class;
 }
-int ReleaseSockClass(ScpSockClass * sock_class);
+
+int ReleaseSockClass(ScpSockClass * sock_class)
+{
+	memset(sock_class,0,sizeof(ScpSockClass));
+	free(sock_class);	
+}
 
 
 
