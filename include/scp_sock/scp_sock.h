@@ -5,7 +5,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-#include <scp_msg.h>
+#include <stdlib.h>
+//#include <scp_msg.h>
 //如果未定义日志记录错误的宏，则直接输出
 #ifndef LOG_ERR
 #define SCP_PERROR(errno,err_str) printf("%s,%s,%d:%s\n",__FILE__,__func__,__LINE__,err_str)
@@ -39,7 +40,7 @@ typedef enum __ScpSockType{
 }ScpSockType;
 
 
-struct __ScpSockClass{
+typedef struct __ScpSockClass{
 	int sock;
 	struct sockaddr_in addr;
 	int8_t cli_or_ser;
@@ -60,12 +61,13 @@ struct __ScpSockClass{
 	int (*Bind)(struct __ScpSockClass*);
 	int (*Listen)(struct __ScpSockClass*,int32_t);
 	struct __ScpSockClass * (*Accept)(struct __ScpSockClass*); 
-};
+}ScpSockClass;
 
-struct ScpSockClass * CreateSockClass(void);
+
+ScpSockClass * CreateSockClass(void);
 int ReleaseSockClass(ScpSockClass * sock_class);
 
-typedef __ScpSockClass ScpSockClass;
+
 
 
 #endif

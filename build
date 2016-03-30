@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+source env.sh
+
+MODULE_LIST=$(ls ./source)
+
+for MODULE in $MODULE_LIST;
+	do
+	{
+		cd $SCP_SRC_PATH/source/$MODULE
+		make clean
+		make all
+	}
+done
+
+for MODULE in $MODULE_LIST;
+	do
+	{
+		echo "	$SCP_SRC_PATH/source/$MODULE"
+	}
+done
+
+#end

@@ -5,9 +5,9 @@
 static int InitSockClass(ScpSockClass * sock_class, ScpSockType sock_type)
 {	
 	int ret;
-	scp_class->cli_or_ser = sock_type;
-	scp_class->sock = socket(AF_INET,SOCK_STREAM,0);
-	ret = scp_class->sock;
+	sock_class->cli_or_ser = sock_type;
+	sock_class->sock = socket(AF_INET,SOCK_STREAM,0);
+	ret = sock_class->sock;
 	if(ret < 0){
 		SCP_PERROR(ret, "Create sock failed.\n");
 		return FAILED;
@@ -16,13 +16,13 @@ static int InitSockClass(ScpSockClass * sock_class, ScpSockType sock_type)
 }
 
 
-static int InitAddress(ScpSockClass* sock_class,const char * ser_ip,uint16_t port, int familly)
+static int InitAddress(ScpSockClass* sock_class,const char * ser_ip,uint16_t port, int family)
 {
 	int ret = 0;
-	sock_class->addr.sin_familly = familly
+	sock_class->addr.sin_family = family;
 	sock_class->addr.sin_port = htons(port);
 	if(sock_class->cli_or_ser == SCP_CLIENT){
-		if((ret = inet_pton(familly,ser_ip,(struct sockaddr*)&(sock_class->addr))) < 0){
+		if((ret = inet_pton(family,ser_ip,(struct sockaddr*)&(sock_class->addr))) < 0){
 			SCP_PERROR(ret, "Inet_pton failed.\n");
 			return FAILED;
 		}
@@ -49,7 +49,7 @@ static int Connect2Server(ScpSockClass *sock_class)
 static int SockRead(ScpSockClass * sock_class, char * recv_buf, int32_t len, uint8_t flag){
 	int recv_len = 0;
 	while(len){
-		recv_len = read(sock_class->sock,recv_buf,len,flasg);
+		recv_len = read(sock_class->sock,recv_buf,len,flag);
 		if(recv_len < 0){	
 			SCP_PERROR(recv_len, "Sock Recv buffer failed.\n");
 			return FAILED;
@@ -67,7 +67,7 @@ static int SockWrite(ScpSockClass * sock_class, const char * send_buf, int32_t l
 {
 	int send_len = 0;
         while(len){
-                send_len = read(sock_class->sock,send_buf,len,flasg);
+                send_len = read(sock_class->sock,send_buf,len,flag);
                 if(send_len < 0){
                         SCP_PERROR(send_len,"Sock Send buffer failed.\n");
                         return FAILED;
@@ -119,44 +119,48 @@ static int Listen(ScpSockClass * sock_class , int32_t count)
 	return SUCCESS;
 }
 
-static ScpSockClass * Accept(ScpSockClass *)
+static ScpSockClass * Accept(ScpSockClass * sock_class)
 {	
 	int ret = 0;
-	int cli_sock;
-	struct sockaddr_in cli_addr;
+	ScpSockClass * cli_sock_class= NULL;
+	cli_sock_class = CreateSockClass();
+
 	socklen_t cli_len;
 	
         if(sock_class->cli_or_ser != 0){
                 SCP_PERROR(0,"Client sock can not Accept.\n");
                 return FAILED;
         }	
-	if((ret = accept(sock_addr->sock,(struct sockaddr*)&cli_addr,&cli_len)) < 0){
+	if((ret = accept(sock_class->sock,(struct sockaddr*)&(cli_sock_class->addr),&cli_len)) < 0){
 		SCP_PERROR(ret ,"Accept client failed.\n");
 		return FAILED;
 	}
-	return SUCCESS;
+	cli_sock_class->sock = ret;
+	return cli_sock_class;
 }
 
 
 
-struct ScpSockClass * CreateSockClass(void)
+ScpSockClass * CreateSockClass(void)
 {
-	struct ScpSockClass * sock_class = malloc(sizeof(struct ScpSockClass));
+	ScpSockClass * sock_class = malloc(sizeof(ScpSockClass));
 	if(sock_class == NULL){
 		SCP_PERROR(0,"ScpSockClass malloc failed.\n");
 		return NULL;
 	}
+	memset(sock_class,0,sizeof(ScpSockClass));
+
 	sock_class->InitSockClass = InitSockClass;
 	sock_class->InitAddress = InitAddress;
 	sock_class->Close = Close;
 
-	sock_class->Connect2Server;
+	sock_class->Connect2Server = Connect2Server;
 	sock_class->Read = SockRead;
 	sock_class->Write = SockWrite;
 
 	sock_class->Bind = Bind;
 	sock_class->Listen = Listen;
-	sock_class->Accept;
+	sock_class->Accept = Accept;
 	return sock_class;
 }
 
