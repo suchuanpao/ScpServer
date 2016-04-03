@@ -1,24 +1,83 @@
 #!/bin/bash
 
+PROJECT_NAME=$(basename `pwd`)
+HEADFILE_SAVE_PATH=/usr/local/include
+MODULE_COMPILE_PATH=module/source
+LIBFILE_SAVE_PATH=/usr/local/lib
 
-source env.sh
+#设置编译文件为调试或开放模式，该模式必须全局
+SCP_GLOBAL_DEBUG_OR_RELEASE=DEBUG
 
-MODULE_LIST=$(ls ./source)
 
-for MODULE in $MODULE_LIST;
-	do
-	{
-		cd $SCP_SRC_PATH/source/$MODULE
-		make clean
-		make all
-	}
-done
+#DEBUG的模式为PRINT,PERROR,LOG
+SCP_GLOBAL_DEFINE_DEBUG_MODE=PRINT
 
-for MODULE in $MODULE_LIST;
-	do
-	{
-		echo "	$SCP_SRC_PATH/source/$MODULE"
-	}
-done
+#基本的编译条件,用*代替-,:用代替空格
+SCP_GLOBAL_CFLAGS=*I.
+SCP_GLOBAL_LFLAGS=*DDEBUG:*g:*lpthread
+SCP_GLOBAL_LDFLAGS=*DDEBUG:*g:*lpthread
+	
+
+
+
+function set_env()
+{
+	source env.sh $1 $2
+}
+#编译需要，所以在编译之前将头文件放到全局环境中
+function mk_inc_file()
+{
+	if [ -d $1 ];then
+		sudo rm -rf $1
+	fi
+	sudo mkdir $1
+
+	INCFILE_LIST=$(find ./ -iname "*.h")
+	for INCFILE in $INCFILE_LIST;
+		do
+		{
+			sudo cp $INCFILE -f $1
+		}
+	done
+}
+#进入各个模块中，编译最基础底层模块，和系统接口直接相关的基层代码
+function compile_module()
+{
+	MODULE_LIST=$(ls $2)
+	for MODULE in $MODULE_LIST;
+		do
+		{	
+			echo "Compiling[ module : $MODULE ]"
+			cd $1/$2/$MODULE
+			make \
+			SCP_DEBUG_OR_RELEASE=$SCP_GLOBAL_DEBUG_OR_RELEASE \
+			SCP_DEFINE_DEBUG_MODE=$SCP_GLOBAL_DEFINE_DEBUG_MODE \
+			SCP_GLOBAL_CFLAGS=$SCP_GLOBAL_CFLAGS \
+			SCP_GLOBAL_LFLAGS=$SCP_GLOBAL_LFLAGS \
+			SCP_GLOBAL_LDFLAGS=$SCP_GLOBAL_LDFLAGS \
+
+		}
+	done
+}
+#编译结束后将库文件.a文件放到系统中，以便上层模块可以直接调用
+function mv_lib_to_global()
+{
+	LIBFILE_LIST=$(ls $1)
+	echo "$LIBFILE_LIST"
+	for LIBFILE in $LIBFILE_LIST;
+		do
+		{	
+			echo "cp $1/$LIBFILE -f $2"
+			sudo cp $1/$LIBFILE $2 -f
+		}
+	done
+}
+set_env $HEADFILE_SAVE_PATH $PROJECT_NAME
+
+mk_inc_file $SCP_INC_PATH
+
+compile_module $SCP_ROOT_PATH $MODULE_COMPILE_PATH
+
+mv_lib_to_global $SCP_LIB_PATH $LIBFILE_SAVE_PATH
 
 #end
