@@ -1,28 +1,25 @@
 #!/bin/bash
 
-PROJECT_NAME=$(basename `pwd`)
-HEADFILE_SAVE_PATH=/usr/local/include
-MODULE_COMPILE_PATH=module/source
-LIBFILE_SAVE_PATH=/usr/local/lib
-
-#设置编译文件为调试或开放模式，该模式必须全局
-SCP_GLOBAL_DEBUG_OR_RELEASE=DEBUG
-
-
-#DEBUG的模式为PRINT,PERROR,LOG
-SCP_GLOBAL_DEFINE_DEBUG_MODE=PRINT
-
 #基本的编译条件,用*代替-,:用代替空格
-SCP_GLOBAL_CFLAGS=*I.
-SCP_GLOBAL_LFLAGS=*DDEBUG:*g:*lpthread
-SCP_GLOBAL_LDFLAGS=*DDEBUG:*g:*lpthread
-	
+#DEBUG的模式为PRINT,PERROR,LOG
+SCP_DEFINE_FLAGS=PRINT
+SCP_CFLAGS=*g:*Wall:*O0:**static
+SCP_LFLAGS=
+SCP_LDFLAGS=
+SCP_COMPILE_LIB=ar:rcs
+SCP_LIB_MODE=.a
 
+#if compile dll 
+#gcc:*shared:*fPIC:*o 
+#LIB_MODODE=.so 
+#else compile static 
+#ar:rcs
+#LIB_MODE=.a
 
 
 function set_env()
 {
-	source env.sh $1 $2
+	source env.sh
 }
 #编译需要，所以在编译之前将头文件放到全局环境中
 function mk_inc_file()
@@ -43,19 +40,22 @@ function mk_inc_file()
 #进入各个模块中，编译最基础底层模块，和系统接口直接相关的基层代码
 function compile_module()
 {
-	MODULE_LIST=$(ls $2)
+	MODULE_LIST=$(ls $1)
 	for MODULE in $MODULE_LIST;
 		do
-		{	
-			echo "Compiling[ module : $MODULE ]"
-			cd $1/$2/$MODULE
+        {
+            mk_inc_file $2/$MODULE
+            cd $1/$MODULE
+			echo "cd module :  $1/$MODULE"
+            make clean \
+            SCP_LIB_MODE=$SCP_LIB_MODE
 			make \
-			SCP_DEBUG_OR_RELEASE=$SCP_GLOBAL_DEBUG_OR_RELEASE \
-			SCP_DEFINE_DEBUG_MODE=$SCP_GLOBAL_DEFINE_DEBUG_MODE \
-			SCP_GLOBAL_CFLAGS=$SCP_GLOBAL_CFLAGS \
-			SCP_GLOBAL_LFLAGS=$SCP_GLOBAL_LFLAGS \
-			SCP_GLOBAL_LDFLAGS=$SCP_GLOBAL_LDFLAGS \
-
+            SCP_DEFINE_FLAGS=$SCP_DEFINE_DEBUG_MODE \
+			SCP_CFLAGS=$SCP_CFLAGS \
+			SCP_LFLAGS=$SCP_LFLAGS \
+			SCP_LDFLAGS=$SCP_LDFLAGS \
+            SCP_COMPILE_LIB=$SCP_COMPILE_LIB \
+            SCP_LIB_MODE=$SCP_LIB_MODE
 		}
 	done
 }
@@ -63,21 +63,18 @@ function compile_module()
 function mv_lib_to_global()
 {
 	LIBFILE_LIST=$(ls $1)
-	echo "$LIBFILE_LIST"
 	for LIBFILE in $LIBFILE_LIST;
 		do
 		{	
 			echo "cp $1/$LIBFILE -f $2"
-			sudo cp $1/$LIBFILE $2 -f
+			#sudo cp $1/$LIBFILE $2 -f
 		}
 	done
 }
-set_env $HEADFILE_SAVE_PATH $PROJECT_NAME
+set_env 
 
-mk_inc_file $SCP_INC_PATH
+compile_module $SCP_MODULE_PATH $SCP_INC_PATH
 
-compile_module $SCP_ROOT_PATH $MODULE_COMPILE_PATH
-
-mv_lib_to_global $SCP_LIB_PATH $LIBFILE_SAVE_PATH
+mv_lib_to_global $SCP_LIB_PATH
 
 #end
