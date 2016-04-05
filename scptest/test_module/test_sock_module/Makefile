@@ -10,15 +10,19 @@ LLFLAGS=$(addprefix -L,$(SCP_LIB_PATH))
 
 LDFLAGS=
 
-CFLAGS=-g
+CFLAGS=-g -Wall -O0
 CCFLAGS=$(addprefix -I,$(SCP_INC_PATH))
 
-SOURCE=$(shell ls *.c)
+SOURCE=server.c
 OBJS=$(patsubst %.c,%.o,$(SOURCE))
-EXEC=test
+#INCLUDE=$(dir $(shell find $(SCP_ROOT_PATH) -iname "*.h"))
 
-all:
-	$(CC) $(SOURCE) $(CFLAGS) $(CCFLAGS) $(LLFLAGS) -o $(EXEC) $(LFLAGS)
+EXEC=server
+
+all: 
+	echo "$(SCP_INC_PATH)"
+	$(CC) $(SOURCE) $(CCFLAGS) $(LLFLAGS) $(CFLAGS) -o $(EXEC) $(LFLAGS)
+
 
 clean:
 	rm -f $(EXEC)

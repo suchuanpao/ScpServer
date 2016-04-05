@@ -2,8 +2,8 @@
 
 #基本的编译条件,用*代替-,:用代替空格
 #DEBUG的模式为PRINT,PERROR,LOG
-SCP_DEFINE_FLAGS=PRINT
-SCP_CFLAGS=*g:*Wall:*O0:**static
+SCP_CDFLAGS=PRINT
+SCP_CFLAGS=*g:*O0:*Wall:**static:*Wstrict*prototypes
 SCP_LFLAGS=
 SCP_LDFLAGS=
 SCP_COMPILE_LIB=ar:rcs
@@ -46,11 +46,10 @@ function compile_module()
         {
             mk_inc_file $2/$MODULE
             cd $1/$MODULE
-			echo "cd module :  $1/$MODULE"
             make clean \
             SCP_LIB_MODE=$SCP_LIB_MODE
 			make \
-            SCP_DEFINE_FLAGS=$SCP_DEFINE_DEBUG_MODE \
+            SCP_CDFLAGS=$SCP_CDFLAGS \
 			SCP_CFLAGS=$SCP_CFLAGS \
 			SCP_LFLAGS=$SCP_LFLAGS \
 			SCP_LDFLAGS=$SCP_LDFLAGS \

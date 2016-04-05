@@ -10,22 +10,27 @@
 #include <errno.h>
 #include <stdio.h>
 
+//如果未定义日志记录错误的宏，则直接输出
+#ifdef DEBUG
+#define SOCK_DEBUG_PRINT(ret,err_str) printf("%s,%s,%d:return value %d.\nsysterm:%s.\n:lib:%s\n",\
+                                     __FILE__,__func__,__LINE__,ret,strerror(errno),err_str)
+#else
+#define SOCK_DEBUG_PRINT(ret,err_str)  
+#endif
 
 
 //模块内部使用的返回值宏
 enum SCP_SOCK_RET_VALUE{
 	SCP_SOCK_RET_FAILED = -1,
 	SCP_SOCK_RET_SUCCESS = 0,
-	SCP_SOCK_RET_WARN = 1
+	SCP_SOCK_RET_WARN = 1,
+    SCP_SOCK_RET_LOG = 2
 };
 
-//如果未定义日志记录错误的宏，则直接输出
-#ifdef DEBUG
-    #define SOCK_DEBUG_PRINT(ret,err_str) printf("%s,%s,%d:return value %d.\nsysterm:%s.\n:lib:%s\n",\
-                                     __FILE__,__func__,__LINE__,ret,strerror(errno),err_str)
-#else
-    #define SOCK_DEBUG_PRINT(ret,err_str)              
-#endif
+#define RET_VALUE SCP_SOCK_RET_VALUE
+#define FAILED 	SCP_SOCK_RET_FAILED
+#define SUCCESS SCP_SOCK_RET_SUCCESS
+#define WARN 	SCP_SOCK_RET_WARN
 
 
 //内部使用固定值

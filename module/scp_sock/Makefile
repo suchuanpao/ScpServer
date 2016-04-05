@@ -1,40 +1,46 @@
 
 CC=$(SCP_COMPILER)
 
-DEFINE_DEBUG_MODE=$(SCP_DEFINE_DEBUG_MODE)
+CDFLAGS=$(addprefix -D,$(subst *,-,$(subst :, ,$(SCP_CDFLAGS))))
+CFLAGS=$(subst *,-,$(subst :, ,$(SCP_CFLAGS)))
+LFLAGS=$(subst *,-,$(subst :, ,$(SCP_LFLAGS)))
+LDFLAGS=$(subst *,-,$(subst :, ,$(SCP_LDFLAGS)))
+COMPILE_LIB=$(subst *,-,$(subst :, ,$(SCP_COMPILE_LIB)))
+
+MODULE=$(shell basename `pwd`)
+SOURCES=$(shell find -iname "*.c")
+OBJS=$(notdir $(patsubst %.c,%.o,$(SOURCES)))
+LIB=$(addprefix lib,$(addsuffix $(SCP_LIB_MODE),$(MODULE)))
+INCLUDE=$(dir $(shell find ./ -iname "*.h"))
 
 
-DEFINE_FLAGS=$(addprefix -D,$(subst *,-,$(subst :, ,$(SCP_DEFINE_DEBUG_MODE))))
-CFLAGS=$(subst *,-,$(subst :, ,$(SCP_CFLAGS)))                     
-LFLAGS=$(subst *,-,$(subst :, ,$(SCP_LFLAGS)))                     
-LDFLAGS=$(subst *,-,$(subst :, ,$(SCP_LDFLAGS)))                   
-COMPILE_LIB=$(subst *,-,$(subst :, ,$(SCP_COMPILE_LIB)))           
- 
-MODULE=$(shell basename `pwd`)                                     
-SOURCE=$(shell find -iname "*.c")                                  
-INCLUDE=./include                                                  
-OBJS+=$(patsubst %.c,%.o,$(SOURCE))                                
-#SOURCE+=$(shell find -iname "*.cpp")                              
+LFLAGS+=
+LDFLAGS+=
+CDFLAGS+=
+CFLAGS+=$(addprefix -I,$(INCLUDE))
+CFLAGS+=$()
 
-LFLAGS+=                                                           
-LDFLAGS+=                                                          
-CFLAGS+=$(addprefix -I,$(INCLUDE))                                 
-DEFINE_FLAGS+=    
-LIB=$(addprefix lib,$(addsuffix $(SCP_LIB_MODE),$(MODULE)))        
+$(strip $(LFLAGS))
+$(strip $(LDFLAGS))
+
+#$(strip $(CDFLAGS))
 
 all : $(LIB) $(OBJS)
 
-$(LIB): $(OBJS)
-	ar rc $(LIB) $(OBJS)
-	mv -f $(OBJS) $(SCP_OPT_PATH)/$(MODULE)
-	mv -f $(LIB) $(SCP_LIB_PATH)
-
-%.o : %.c
+$(OBJS): $(SOURCES)
 	@echo "[ compling $@ ]"
-	@echo "makefile MODULE : $(MODULE)"
-	@$(CC) $< -c $(CFLAGS)
+	$(CC) $< -c $(CFLAGS) $(CDFLAGS)
+
+$(LIB): $(OBJS)
+	$(COMPILE_LIB) $(LDFLAGS) $(LIB) $(OBJS)
+	mv -f $(OBJS) $(SCP_OPT_PATH)
+	mv -f $(LIB) $(SCP_LIB_PATH) 
+
 
 .PHONY : clean
 clean:
-	rm -f $(SCP_LIB_PATH)/$(MODULE)/$(LIB) $(SCP_OPT_PATH)/$(MODULE)/$(OBJS)
+	rm -f $(SCP_LIB_PATH)/$(LIB)
+	rm -f $(SCP_OPT_PATH)/$(OBJS)
+	rm -f $(LIB) 
+	rm -f $(OBJS)
 	
