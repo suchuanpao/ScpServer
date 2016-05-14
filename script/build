@@ -1,0 +1,79 @@
+#!/bin/bash
+
+#基本的编译条件,用*代替-,:用代替空格
+#DEBUG的模式为PRINT,PERROR,LOG
+SCP_CDFLAGS=PRINT
+SCP_CFLAGS=*g:*O0:*Wall:**static:*Wstrict*prototypes
+SCP_LFLAGS=
+SCP_LDFLAGS=
+SCP_COMPILE_LIB=ar:rcs
+SCP_LIB_MODE=.a
+
+#if compile dll 
+#gcc:*shared:*fPIC:*o 
+#LIB_MODODE=.so 
+#else compile static 
+#ar:rcs
+#LIB_MODE=.a
+
+
+function set_env()
+{
+	source env.sh
+}
+#编译需要，所以在编译之前将头文件放到全局环境中
+function mk_inc_file()
+{
+	if [ -d $1 ];then
+		sudo rm -rf $1
+	fi
+	sudo mkdir $1
+
+	INCFILE_LIST=$(find ./ -iname "*.h")
+	for INCFILE in $INCFILE_LIST;
+		do
+		{
+			sudo cp $INCFILE -f $1
+		}
+	done
+}
+#进入各个模块中，编译最基础底层模块，和系统接口直接相关的基层代码
+function compile_module()
+{
+	MODULE_LIST=$(ls $1)
+	for MODULE in $MODULE_LIST;
+		do
+        {
+            mk_inc_file $2/$MODULE
+            cd $1/$MODULE
+            make clean \
+            SCP_LIB_MODE=$SCP_LIB_MODE
+			make \
+            SCP_CDFLAGS=$SCP_CDFLAGS \
+			SCP_CFLAGS=$SCP_CFLAGS \
+			SCP_LFLAGS=$SCP_LFLAGS \
+			SCP_LDFLAGS=$SCP_LDFLAGS \
+            SCP_COMPILE_LIB=$SCP_COMPILE_LIB \
+            SCP_LIB_MODE=$SCP_LIB_MODE
+		}
+	done
+}
+#编译结束后将库文件.a文件放到系统中，以便上层模块可以直接调用
+function mv_lib_to_global()
+{
+	LIBFILE_LIST=$(ls $1)
+	for LIBFILE in $LIBFILE_LIST;
+		do
+		{	
+			echo "cp $1/$LIBFILE -f $2"
+			#sudo cp $1/$LIBFILE $2 -f
+		}
+	done
+}
+set_env 
+
+compile_module $SCP_MODULE_PATH $SCP_INC_PATH
+
+mv_lib_to_global $SCP_LIB_PATH
+
+#end

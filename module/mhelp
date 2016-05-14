@@ -1,0 +1,87 @@
+#!/bin/bash
+
+
+show_all()
+{
+    MODULES=$(ls)
+    for _module_ in $MODULES;do
+        {
+            if [ -d $_module_ ];then
+                {
+                    echo "$_module_:"
+                    module=$(ls $_module_)
+                    CHILD_FILE_COUNT=0
+                    for module_child in $module;do
+                        {
+                            DELIMIT_LEN=12;
+                            CHILD_FILE_COUNT=$[$CHILD_FILE_COUNT+1]
+                            DELIMIT_STR=$(awk -v delimit_type=- -v delimit_len=$DELIMIT_LEN 'BEGIN{ for(i=0;i<delimit_len;i++){printf("%s",delimit_type);}}')
+                            echo -e "|$DELIMIT_STR>$CHILD_FILE_COUNT.$module_child"
+                        }
+                    done
+                    echo  "\\"
+                }
+            fi
+        }
+    done
+}
+show_depend()
+{
+    AIM=$1
+    if [ -z $AIM ];then
+        mhelp
+        exit 1
+    fi
+    AIM_PATH=$(find -iname $AIM)
+    echo "$AIM_PATH"
+    DEPEND_HEADS=$(grep -rn "include" $AIM_PATH | grep "\".*\.h\"" | cut -d\" -f2 | awk -F '/' '{ print $NF }' | sort -d | uniq)
+    echo "module depends:"
+    for DEPEND_HEAD in $DEPEND_HEADS;do
+        {
+            find -iname $DEPEND_HEAD
+        }
+    done
+
+}
+
+dohelp()
+{
+    case $1 in
+        all)
+            show_all
+            ;;
+        depend)
+            show_depend $2
+            ;;
+    esac
+}
+
+mhelp()
+{
+    echo -e "mhelp is a script to help show module frame(chinese : kuangjia())"
+    echo -e "./mhelp [OPTION] [ARGS]"
+    echo -e "\n"
+    echo -e "\tARGS   : "
+    echo -e "\t\t     : It canbe module name"
+    echo -e "\n"
+    echo -e "\tOPTION: all | depend"
+    echo -e "\n"
+    echo -e "\tall: show all module"
+    echo -e "\n"
+    echo -e "\tdepend: depend + module_name"
+    echo -e "\n"
+    echo -e "\texample: "
+    echo -e "\t\t./mhelp depend sc_error"
+    echo -e "\n"
+}
+
+if [ $# = 0 ];then
+    {
+        mhelp
+        exit 1
+    }
+else
+    {
+        dohelp $@
+    }
+fi

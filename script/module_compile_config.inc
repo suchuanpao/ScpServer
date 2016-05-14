@@ -1,0 +1,5 @@
+
+ifeq (ARCH, )
+COMPILE=gcc
+
+
