@@ -30,14 +30,12 @@ typedef enum {
     SC_MUTEX_SET_PROTOCAL,
 } ScLockCtl;
 
-typedef enum                                                                                                                    
+typedef enum
 {           
     //多进程锁
     SC_MUTEX_PROCESS_SHARED = 0,
     //单进程锁
     SC_MUTEX_PROCESS_PRIVATE,
-
-
     //重复锁定会导致死锁
     SC_MUTEX_TYPE_NORMAL,
     //自动检测死锁，只提供错误检查，重复锁定有错误
@@ -46,12 +44,9 @@ typedef enum
     SC_MUTEX_TYPE_RESCURSIVE,
     //重复锁定会导致不可预料的后果
     SC_MUTEX_TYPE_DEFAULT,
-
     //线程优先级和调度不会收到互斥量的影响
     SC_MUTEX_PROTOCOL_NONE,
     //
-    
-
 } ScLockAttr;
 
 extern ScLockOps mutexOps;

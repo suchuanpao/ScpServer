@@ -13,7 +13,7 @@
 
 static int Sc_MutexLock(ScLockInfo *st_lock_info)
 {
-    ScMutexInfo * st_mutex_info = st_lock_info->priv;    
+    ScMutexInfo * st_mutex_info = st_lock_info->priv;
     return pthread_mutex_lock(&st_mutex_info->mutex);
 }
 
@@ -32,21 +32,14 @@ static int Sc_MutexTrylock(ScLockInfo * st_lock_info)
 static int Sc_controlMutex(ScLockInfo * st_lock_info, int attr, va_list pArgs)
 {
     int ret;
-
     ScMutexInfo * st_mutex_info = st_lock_info->priv;
-
     st_mutex_info->mutex_attr = (pthread_mutexattr_t *)malloc( sizeof(*(st_mutex_info->mutex_attr)) );
-
     if(!st_mutex_info->mutex_attr) {
-        return SC_LOCK_FAILED;    
+        return SC_LOCK_FAILED;
     }
-
     pthread_mutex_t * mutex = &st_mutex_info->mutex;
-
     pthread_mutexattr_t * mutex_attr = st_mutex_info->mutex_attr;
-
     pthread_mutexattr_init(mutex_attr);
-
     switch(attr) {
         case SC_MUTEX_PROCESS_SHARED:
             ret = pthread_mutexattr_setpshared(mutex_attr, PTHREAD_PROCESS_SHARED);

@@ -22,7 +22,10 @@ typedef enum
 typedef enum
 {
     SC_MUTEX = 0,
-    SC_RWLOCK
+    SC_RWLOCK,
+    SC_PROCLOCK,
+    SC_SEMLOCK,
+    SC_RECLOCK,
 } ScLockType;
 
 
@@ -43,7 +46,11 @@ typedef struct __ScLockOps
     int (*registerLock)(ScLockInfo *);
     int (*unregisterLock)(ScLockInfo *);
 } ScLockOps;
-
+/*
+ * The Lock Info(ScLock) and Lock operations(ScLockOps) be separated 
+ * is helpful to make locks modular which attributes and operations is 
+ * diffirent ;
+ * */
 typedef struct __ScLock
 {
     ScLockInfo lock_info;
