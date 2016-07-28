@@ -11,7 +11,7 @@
 #define _SC_ERROR_H
 
 
-#define MAX_ERROR_STRING_LENGTH 512
+#define MAX_ERROR_STRING_LENGTH 1024
 #define SC_THREAD_T pthread_t
 #define SC_THREAD_MUTEX pthread_mutex_t
 
@@ -21,7 +21,16 @@ typedef enum
     SC_ERROR_FAILED = -1,
     SC_ERROR_SUCCESS = 0,
     SC_ERROR_WARN = 1,
-}ScErrorType
+}ScSetErrorType
+
+typedef enum
+{   
+    SC_ERROR_NO = 0,
+    SC_ERROR_MESSAGE = 1,
+    SC_ERROR_POS = 2,
+    SC_ERROR_FOLLOW = 3,
+    SC_ERROR_WARN = 4,
+}ScGetErrorType
 
 
 typedef __ScErrorHead
@@ -35,14 +44,10 @@ typedef __ScError
     int errno;
     SC_THREAD_T tid;
     char error_pos[MAX_ERROR_STRING_LENGTH];
+    char error_Message[MAX_ERROR_STRING_LENGTH];
     char error_result[MAX_ERROR_STRING_LENGTH];
     ListHead list;
 }ScError;
-
-
-static char err_string[MAX_ERROR_STRING_LENGTH];
-static char err_reason[MAX_ERROR_STRING_LENGTH];
-static pthread_mutex_t err_msg_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char * Sc_getError();
 

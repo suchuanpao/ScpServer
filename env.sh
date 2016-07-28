@@ -1,9 +1,9 @@
 #系统类目
-export OS=linux
+export OS=
 #编译器厂家，或编译器类型
 export ARCH=
 #编译器
-export COMPILER=gcc
+export COMPILER=
 #工程的根目录
 export SCP_ROOT_PATH=$(pwd)
 #头文件目录
@@ -17,16 +17,15 @@ export SCP_SRC_PATH=$SCP_ROOT_PATH/src
 #库文件所在目录
 export SCP_LIB_PATH=$SCP_ROOT_PATH/lib
 #二进制文件所在目录，主要存放.o文件，编译bin文件使用
-export SCP_LIB_PATH=$SCP_ROOT_PATH/lib
+export SCP_BIN_PATH=$SCP_ROOT_PATH/bin
 #配置脚本所在目录
 export SCP_SCRIPT_PATH=$SCP_ROOT_PATH/script
-
 
 #根据库要编译的自己的工程目录
 export SCP_PROJECT_PATH=$SCP_ROOT_PATH/scptest
 
 
-echo "export COMPILER=$SCP_COMPILER"
+echo "export COMPILER=$COMPILER"
 echo "export SCP_ROOT_PATH = $SCP_ROOT_PATH"
 echo "export SCP_MODULE_PATH = $SCP_MODULE_PATH"
 echo "export SCP_INC_PATH = $SCP_INC_PATH"
